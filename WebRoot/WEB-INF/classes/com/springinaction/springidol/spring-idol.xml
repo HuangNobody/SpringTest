@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:p="http://www.springframework.org/schema/p"   
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:context="http://www.springframework.org/schema/context"   
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans 
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+         http://www.springframework.org/schema/util 
+        http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/aop 
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
+        
+    <!-- 开启注解扫描 -->
+	<context:component-scan base-package = "com.springinaction.springidol"></context:component-scan>
+	
+	<!-- 开启aop注解方式，默认为false -->
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	
+	<!-- 注入对象类型属性 -->
+	<!--  配置Juggler对象 -->
+	<bean id="duke" 
+			class="com.springinaction.springidol.PoeticJuggler"
+			autowire = "constructor" />
+
+	
+	<!-- 配置Sonnet29对象，将Sonnet29声明为一个Spring<bean> -->
+	<bean id = "sonnet29" class = "com.springinaction.springidol.Sonnet29"/>
+	
+	<bean id = "poeticDuke" class = "com.springinaction.springidol.PoeticJuggler">
+		<constructor-arg value = "15"/>
+		<constructor-arg ref = "sonnet29"/>
+	</bean>
+	
+	<!-- 在spring中把没有公开构造方法的Stage配置为一个Bean。用factory-method代替构造方法来创建一个类的实例 -->
+	<bean id = "theStage" class = "com.springinaction.springidol.Stage" 
+						factory-method = "getInstance" />
+						
+	<!-- 2.1.5 初始化和销毁Bean。  init-method指定了在初始化Bean时要调用的方法；destroy-method属性指定了Bean从容器移除之前要调用的方法-->
+	<bean id = "auditorium" 
+		class = "com.springinaction.springidol.Auditorium"
+		init-method = "turnOnLights"
+		destroy-method = "turnOffLights" />
+	<!-- 2.2注入Bean属性。因为Instrumentalist类拥有一个默认的构造方法，所以Kenny可以在spring中采用下面的XML声明为一个<bean> -->
+	<bean id = "Kenny"
+			class = "com.springinaction.springidol.Instrumentalist" 
+			autowire = "byType">
+			<property name = "song" value = "Jingle Bells" />
+			<property name = "instrument" ref = "saxophone"/>
+	</bean>
+	
+	<!-- 2.2.3使用Spring的命名空间p装配属性 -->
+	<bean id = "pKenny"
+			class = "com.springinaction.springidol.Instrumentalist" 
+			p:song = "Jingle Bells"
+			p:instrument-ref = "saxophone" />
+
+	
+	<!-- 2.2.2引用其他Bean。在Kenny演奏萨克斯之前，我们必须在spring中将它声明为一个Bean。声明saxophone之后，就可以将它赋给Kenny演奏了 -->
+	<bean id = "instrument"
+			class = "com.springinaction.springidol.Saxophone" />
+	
+	<bean id = "saxophone"
+			class = "com.springinaction.springidol.Saxophone" 
+			autowire-candidate = "false"/>
+			
+	<bean id = "Kenny2"
+			class = "com.springinaction.springidol.Instrumentalist">
+			<property name = "song" value = "Jingle Bells" />
+			<property name = "instrument" ref = "saxophone" />
+			<!-- 上面一句使用SpEL把以恶ID为“saxophone”的Bean装配到了一个instruments属性中，和使用ref的作用一样，ref="saxophone" -->
+			
+	</bean>
+	
+	<bean id = "piano"
+			class = "com.springinaction.springidol.Piano" 
+			autowire-candidate = "false"/>
+	
+	<!-- 2.2.4装配集合。 -->
+	<bean id = "hank"
+			class = "com.springinaction.springidol.OneManBand">
+		<property name = "instruments">
+			<props>
+				<prop key = "GUITAR" >STRUM STRUM STRUM</prop>
+				<prop key = "CYMBAL" >CRASH CRASH CRASH</prop>
+				<prop key = "HARMONICA">HUM HUM HUM</prop>
+			</props>
+		</property>
+	</bean>
+	
+	<bean id = "guitar"
+			class ="com.springinaction.springidol.Guitar"
+			autowire-candidate = "false"/>
+	<bean id = "cymbal"
+			class = "com.springinaction.springidol.Cymbal"
+			autowire-candidate = "false"/>
+	<bean id = "harmonica"
+			class = "com.springinaction.springidol.Harmonica"
+			autowire-candidate = "false"/>
+	
+	<!-- 2.3.1SpEL的基本原理，使用SpEL语言引用另一个Bean的属性#{Kenny.song} -->		
+	<bean id = "car1"
+		class = "com.springinaction.springidol.Instrumentalist" >
+		<property name = "song" value = "#{Kenny.song}"/>
+	</bean>
+	
+	<!-- 2.3.3 在SpEL中筛选集合 -->
+	<util:list id="cities"> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Chicago" p:state="IL" p:population="2853114"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Atlanta" p:state="GA" p:population="537958"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Dallas" p:state="TX" p:population="1279910"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Houston" p:state="TX" p:population="2242193"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Odessa" p:state="TX" p:population="90943"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="El Paso" p:state="TX" p:population="613190"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Jal" p:state="NM" p:population="1996"/> 
+		<bean class="com.habuma.spel.cities.City" 
+			p:name="Las Cruces" p:state="NM" p:population="91865"/> 
+	</util:list> 
+	
+	<!-- 4.3 在XML中声明切面,注册为Spring上下文中的一个Bean -->
+	<bean id = "audience"
+			class = "com.springinaction.springidol.Audience"/>
+			
+	<!--4.3.1 声明前置和后置通知  -->
+	<aop:config>
+		<aop:aspect ref = "audience">
+			<aop:pointcut id = "performance" expression = 
+				"execution(* com.springinaction.springidol.Performer.perform(..))" />
+			
+			<aop:before 
+				pointcut-ref = "performance"
+				method = "takeSeats" />
+			<aop:before 
+				pointcut-ref = "performance"
+				method = "turnOffCellphones" />
+			<aop:after-returning 
+				pointcut-ref = "performance"
+				method = "applaud" />
+			<aop:after-throwing 
+				pointcut-ref = "performance"
+				method = "demandReFund" />
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- 
+		<aop:config>
+		<aop:aspect ref = "audience">
+			<aop:pointcut id = "performance2" expression = 
+				"execution(* com.springinaction.springidol.Performer.perform(..))" />
+				
+			<aop:around
+				pointcut-ref = "performance2"
+				method = "watchPerformance()" />
+		</aop:aspect>
+	</aop:config>
+	 -->
+
+	
+	<aop:config>
+		<aop:aspect ref = "magician">
+			<aop:pointcut id = "thinking"
+				expression = "execution(* 
+				com.springinaction.springidol.Thinker.thinkOfSomething(String)) and args(thoughts)" />
+			
+			<aop:before
+				pointcut-ref = "thinking"
+				method = "interceptToughts"
+				arg-names = "thoughts" />
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- 4.3.4 通过切面引入新功能 -->
+	<aop:config>
+		<aop:aspect>
+			<aop:declare-parents
+				types-matching = "com.springinaction.springidol.Performer+"
+				implement-interface = "com.springinaction.springidol.Contestant"
+				default-impl = "com.springinaction.springidol.GraciousContestant" />
+		</aop:aspect>
+	</aop:config>
+	
+	<!-- 4.4.3 标注引入 -->
+	<bean class = "com.springinaction.springidol.ContestantIntroducer" />
+
+	<!-- 4.5 注入AspectJ切面 -->
+	<bean id ="criticismEngine"
+			class = "com.springinaction.springidol.CriticismEngineImpl" >
+		<property name = "criticism">
+			<list>
+				<value>I'm not being rude, but that was appalling.</value>
+				<value>You may be the least talentedperson  in this show.</value>
+				<value>Do everyone a favor and keep your day job.</value>
+			</list>
+		</property>
+	</bean>
+	
+	<bean class = "com.springinaction.springidol.JudgeAspect"
+			factory-method = "aspectOf">
+			<property name = "criticismEngine" ref = "criticismEngine" />
+	</bean>
+
+	
+</beans>
